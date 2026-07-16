@@ -15,6 +15,10 @@ const Metadata = {
         window.jsmediatags.read(file, {
             onSuccess: function(tag) {
                 const tags = tag.tags;
+                console.log("=== JSMEDIATAGS READ SUCCESS ===");
+                console.log("Raw Tags Found:", tags);
+                console.log("Picture Frame Found?:", !!tags.picture);
+                
                 Metadata.originalTags = {
                     title: tags.title || '',
                     artist: tags.artist || '',
@@ -27,7 +31,8 @@ const Metadata = {
                 callback(Metadata.originalTags);
             },
             onError: function(error) {
-                console.log('Error reading tags:', error);
+                console.error("=== JSMEDIATAGS READ ERROR ===");
+                console.error(error);
                 callback({}); 
             }
         });
@@ -52,12 +57,11 @@ const Metadata = {
             if (newTags.genre) writer.setFrame('TCON', newTags.genre); 
             if (newTags.composer) writer.setFrame('TCOM', newTags.composer); 
             
-            // FIX: Added mandatory 'language' parameter for Comment frame
             if (newTags.comment) {
                 writer.setFrame('COMM', { 
                     description: '', 
                     text: newTags.comment,
-                    language: 'eng' // 3-letter ISO language code
+                    language: 'eng'
                 });
             }
 
@@ -65,6 +69,7 @@ const Metadata = {
             if (newTags.track) writer.setFrame('TRCK', String(newTags.track));
 
             if (newCoverBuffer) {
+                console.log("Saving Cover Art with MimeType:", mimeType || 'image/jpeg');
                 writer.setFrame('APIC', {
                     type: 3, 
                     data: newCoverBuffer,
@@ -84,6 +89,7 @@ const Metadata = {
             link.download = `[Edited] ${Metadata.fileName}`;
             link.click();
             window.URL.revokeObjectURL(url);
+            console.log("Download triggered successfully!");
             
         } catch (e) {
             console.error("ID3 Writer Error Details:", e);

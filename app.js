@@ -50,21 +50,21 @@ document.addEventListener('DOMContentLoaded', () => {
             fields.year.value = tags.year || '';
             fields.track.value = tags.track || '';
 
-            // UPGRADED: Super fast native Blob image preview
             if (tags.picture && tags.picture.data) {
+                console.log("Original Cover Found! Reading bytes...");
                 const picData = new Uint8Array(tags.picture.data);
                 const format = tags.picture.format || 'image/jpeg';
                 ImageEditor.currentCoverMimeType = format;
                 
-                // Create native blob URL (Bypasses slow string loops)
                 const blob = new Blob([picData], { type: format });
                 coverPreview.src = URL.createObjectURL(blob);
 
-                // Deep copy to a clean ArrayBuffer
                 const cleanBuffer = new ArrayBuffer(picData.length);
                 new Uint8Array(cleanBuffer).set(picData);
                 ImageEditor.currentCoverArrayBuffer = cleanBuffer;
+                console.log("Original Cover rendered, buffer size:", cleanBuffer.byteLength);
             } else {
+                console.log("No Cover Found in this MP3 file.");
                 coverPreview.src = "https://dummyimage.com/300x300/282828/1db954.png&text=No+Cover";
                 ImageEditor.currentCoverArrayBuffer = null;
                 ImageEditor.currentCoverMimeType = 'image/jpeg';
