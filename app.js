@@ -57,12 +57,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const base64 = window.btoa(base64String);
                 
-                // Save original mimeType
                 const format = tags.picture.format || 'image/jpeg';
                 ImageEditor.currentCoverMimeType = format;
                 
                 coverPreview.src = `data:${format};base64,${base64}`;
-                ImageEditor.currentCoverArrayBuffer = new Uint8Array(tags.picture.data).buffer;
+
+                // FIX: Copy bytes to a fresh and isolated ArrayBuffer to prevent memory leaks/corruption
+                const picData = new Uint8Array(tags.picture.data);
+                const cleanBuffer = new ArrayBuffer(picData.length);
+                new Uint8Array(cleanBuffer).set(picData);
+                
+                ImageEditor.currentCoverArrayBuffer = cleanBuffer;
             } else {
                 coverPreview.src = "https://dummyimage.com/300x300/282828/1db954.png&text=No+Cover";
                 ImageEditor.currentCoverArrayBuffer = null;
@@ -107,37 +112,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('compareBtn').addEventListener('click', () => {
         beforeTags.innerHTML = '';
-        afterTags.innerHTML = '';
-
-        const orig = Metadata.originalTags || {};
-        const keys = ['title', 'artist', 'album', 'genre', 'year', 'track'];
-        
-        keys.forEach(k => {
-            const originalVal = orig[k] || '-';
-            const newVal = fields[k].value || '-';
-            const colorClass = originalVal !== newVal ? 'text-spotify font-bold' : 'text-gray-300';
-
-            beforeTags.innerHTML += `<p><span class="capitalize text-gray-500">${k}:</span> ${originalVal}</p>`;
-            afterTags.innerHTML += `<p><span class="capitalize text-gray-500">${k}:</span> <span class="${colorClass}">${newVal}</span></p>`;
-        });
-
-        compareModal.classList.remove('hidden');
-    });
-
-    document.getElementById('cancelSaveBtn').addEventListener('click', () => {
-        compareModal.classList.add('hidden');
-    });
-
-    document.getElementById('confirmSaveBtn').addEventListener('click', () => {
-        const newTags = {};
-        Object.keys(fields).forEach(key => { newTags[key] = fields[key].value.trim(); });
-        
-        // FIX: Added currentCoverMimeType as the third argument
-        Metadata.writeAndDownload(
-            newTags, 
-            ImageEditor.currentCoverArrayBuffer, 
-            ImageEditor.currentCoverMimeType
-        );
-        compareModal.classList.add('hidden');
-    });
-});
+        afterTags.
