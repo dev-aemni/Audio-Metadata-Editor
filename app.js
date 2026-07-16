@@ -50,23 +50,19 @@ document.addEventListener('DOMContentLoaded', () => {
             fields.year.value = tags.year || '';
             fields.track.value = tags.track || '';
 
+            // UPGRADED: Super fast native Blob image preview
             if (tags.picture && tags.picture.data) {
-                let base64String = "";
-                for (let i = 0; i < tags.picture.data.length; i++) {
-                    base64String += String.fromCharCode(tags.picture.data[i]);
-                }
-                const base64 = window.btoa(base64String);
-                
+                const picData = new Uint8Array(tags.picture.data);
                 const format = tags.picture.format || 'image/jpeg';
                 ImageEditor.currentCoverMimeType = format;
                 
-                coverPreview.src = `data:${format};base64,${base64}`;
+                // Create native blob URL (Bypasses slow string loops)
+                const blob = new Blob([picData], { type: format });
+                coverPreview.src = URL.createObjectURL(blob);
 
-                // Safe deep-copy of picture bytes to prevent shared memory overflow
-                const picData = new Uint8Array(tags.picture.data);
+                // Deep copy to a clean ArrayBuffer
                 const cleanBuffer = new ArrayBuffer(picData.length);
                 new Uint8Array(cleanBuffer).set(picData);
-                
                 ImageEditor.currentCoverArrayBuffer = cleanBuffer;
             } else {
                 coverPreview.src = "https://dummyimage.com/300x300/282828/1db954.png&text=No+Cover";
@@ -144,4 +140,4 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         compareModal.classList.add('hidden');
     });
-}); 
+});
