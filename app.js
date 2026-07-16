@@ -144,4 +144,4 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         compareModal.classList.add('hidden');
     });
-}); // <--- Yeh line miss ho gayi thi, jise ab add kar diya gaya hai.
+}); 
