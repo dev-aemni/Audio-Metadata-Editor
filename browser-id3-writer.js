@@ -178,42 +178,27 @@
         constructor(t) {
             super(t);
         }
+        // FIX: APIC frame strictly matches the unconditional UTF-16LE write
         size(t) {
             var e = t.mimeType.length, 
                 r = t.description.length, 
                 n = t.data.byteLength;
-            if ("US-ASCII" === this.encoding) {
-                return 4 + e + r + n;
-            } else {
-                return 7 + e + 2 * r + n;
-            }
+            return 7 + e + 2 * r + n;
         }
         write(t, e) {
             var r = i(t.mimeType);
-            if ("US-ASCII" === this.encoding) {
-                e.setUint8(0);
-                e.setUint8Array(r);
-                e.setUint8(0);
-                e.setUint8(t.type);
-                if (t.description.length) {
-                    var n = i(t.description);
-                    e.setUint8Array(n);
-                }
-                e.setUint8(0);
-            } else {
-                e.setUint8(1);
-                e.setUint8Array(r);
-                e.setUint8(0);
-                e.setUint8(t.type);
-                e.setUint8(255);
-                e.setUint8(254);
-                if (t.description.length) {
-                    var n = u(t.description);
-                    e.setUint8Array(n);
-                }
-                e.setUint8(0);
-                e.setUint8(0);
+            e.setUint8(1); // Always UTF-16LE
+            e.setUint8Array(r);
+            e.setUint8(0);
+            e.setUint8(t.type);
+            e.setUint8(255);
+            e.setUint8(254);
+            if (t.description.length) {
+                var n = u(t.description);
+                e.setUint8Array(n);
             }
+            e.setUint8(0);
+            e.setUint8(0);
             var o = new Uint8Array(t.data);
             e.setUint8Array(o);
         }
@@ -307,7 +292,8 @@
                         (e = new y(t.id)).encoding = "UTF-16LE";
                         break;
                     case "APIC":
-                        (e = new p(t.id)).encoding = "US-ASCII";
+                        // FIX: Encoding matched to UTF-16LE to prevent size calculations mismatch
+                        (e = new p(t.id)).encoding = "UTF-16LE";
                         break;
                     default:
                         throw new Error("Frame not implemented");
