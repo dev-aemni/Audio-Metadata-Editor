@@ -9,33 +9,39 @@ const Metadata = {
         Metadata.fileName = file.name;
         
         const reader = new FileReader();
-        reader.onload = () => { Metadata.originalAudioBuffer = reader.result; };
+        reader.onload = () => { 
+            // Save buffer first
+            Metadata.originalAudioBuffer = reader.result; 
+            
+            console.log("FileReader finished. Starting jsmediatags...");
+            
+            // Start jsmediatags ONLY after FileReader is 100% done (Prevents Blob Collision)
+            window.jsmediatags.read(file, {
+                onSuccess: function(tag) {
+                    const tags = tag.tags;
+                    console.log("=== JSMEDIATAGS READ SUCCESS ===");
+                    console.log("Raw Tags Found:", tags);
+                    console.log("Picture Frame Found?:", !!tags.picture);
+                    
+                    Metadata.originalTags = {
+                        title: tags.title || '',
+                        artist: tags.artist || '',
+                        album: tags.album || '',
+                        genre: tags.genre || '',
+                        year: tags.year || '',
+                        track: tags.track || '',
+                        picture: tags.picture
+                    };
+                    callback(Metadata.originalTags);
+                },
+                onError: function(error) {
+                    console.error("=== JSMEDIATAGS READ ERROR ===");
+                    console.error(error);
+                    callback({}); 
+                }
+            });
+        };
         reader.readAsArrayBuffer(file);
-
-        window.jsmediatags.read(file, {
-            onSuccess: function(tag) {
-                const tags = tag.tags;
-                console.log("=== JSMEDIATAGS READ SUCCESS ===");
-                console.log("Raw Tags Found:", tags);
-                console.log("Picture Frame Found?:", !!tags.picture);
-                
-                Metadata.originalTags = {
-                    title: tags.title || '',
-                    artist: tags.artist || '',
-                    album: tags.album || '',
-                    genre: tags.genre || '',
-                    year: tags.year || '',
-                    track: tags.track || '',
-                    picture: tags.picture
-                };
-                callback(Metadata.originalTags);
-            },
-            onError: function(error) {
-                console.error("=== JSMEDIATAGS READ ERROR ===");
-                console.error(error);
-                callback({}); 
-            }
-        });
     },
 
     writeAndDownload: (newTags, newCoverBuffer, mimeType) => {

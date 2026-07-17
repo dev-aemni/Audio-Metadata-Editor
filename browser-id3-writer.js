@@ -247,7 +247,7 @@
         constructor(t) {
             if (!t || 0 === t.byteLength) throw new Error("ArrayBuffer is required");
             this.buffer = t;
-            this.padding = 4096;
+            this.padding = 0;
             this.frames = [];
             this.url = "";
         }
