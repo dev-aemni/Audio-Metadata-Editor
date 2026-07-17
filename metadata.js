@@ -5,17 +5,37 @@ const Metadata = {
     fileName: "",
     originalTags: {},
 
+    // Helper to strip existing ID3v2 tags from the original file buffer
+    stripId3v2: (arrayBuffer) => {
+        const view = new DataView(arrayBuffer);
+        if (arrayBuffer.byteLength > 10 && 
+            view.getUint8(0) === 0x49 && // 'I'
+            view.getUint8(1) === 0x44 && // 'D'
+            view.getUint8(2) === 0x33) { // '3'
+            
+            // Extract synchsafe size of original tag (offset 6-9)
+            const s0 = view.getUint8(6);
+            const s1 = view.getUint8(7);
+            const s2 = view.getUint8(8);
+            const s3 = view.getUint8(9);
+            const tagSize = (s0 << 21) | (s1 << 14) | (s2 << 7) | s3;
+            const totalTagSize = tagSize + 10; // Tag size + 10 bytes header
+            
+            console.log("Stripped original ID3v2 tag. Size removed:", totalTagSize, "bytes.");
+            return arrayBuffer.slice(totalTagSize);
+        }
+        return arrayBuffer;
+    },
+
     read: (file, callback) => {
         Metadata.fileName = file.name;
         
         const reader = new FileReader();
         reader.onload = () => { 
-            // Save buffer first
             Metadata.originalAudioBuffer = reader.result; 
             
             console.log("FileReader finished. Starting jsmediatags...");
             
-            // Start jsmediatags ONLY after FileReader is 100% done (Prevents Blob Collision)
             window.jsmediatags.read(file, {
                 onSuccess: function(tag) {
                     const tags = tag.tags;
@@ -54,7 +74,9 @@ const Metadata = {
                 throw new Error("ID3 Writer constructor missing.");
             }
 
-            const writer = new WriterClass(Metadata.originalAudioBuffer);
+            // FIX: Purane metadata tag ko strip karke clean buffer nikaalna
+            const cleanAudioBuffer = Metadata.stripId3v2(Metadata.originalAudioBuffer);
+            const writer = new WriterClass(cleanAudioBuffer);
             
             if (newTags.title) writer.setFrame('TIT2', newTags.title);
             if (newTags.artist) writer.setFrame('TPE1', newTags.artist); 
