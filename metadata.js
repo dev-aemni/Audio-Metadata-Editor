@@ -5,24 +5,40 @@ const Metadata = {
     fileName: "",
     originalTags: {},
 
-    // Strips out any pre-existing ID3v2 tags from original MP3 buffer
+    // FIX: Deep Scan & Strip any existing ID3v2 tag at any offset (0 to 2000)
     stripId3v2: (arrayBuffer) => {
         const view = new DataView(arrayBuffer);
-        if (arrayBuffer.byteLength > 10 && 
-            view.getUint8(0) === 0x49 && // 'I'
-            view.getUint8(1) === 0x44 && // 'D'
-            view.getUint8(2) === 0x33) { // '3'
-            
-            const s0 = view.getUint8(6);
-            const s1 = view.getUint8(7);
-            const s2 = view.getUint8(8);
-            const s3 = view.getUint8(9);
-            const tagSize = (s0 << 21) | (s1 << 14) | (s2 << 7) | s3;
-            const totalTagSize = tagSize + 10;
-            
-            console.log("Found existing ID3v2 tag. Stripping", totalTagSize, "bytes.");
-            return arrayBuffer.slice(totalTagSize);
+        const limit = Math.min(arrayBuffer.byteLength - 10, 2000); // Scans first 2000 bytes
+        
+        for (let i = 0; i < limit; i++) {
+            if (view.getUint8(i) === 0x49 &&     // 'I'
+                view.getUint8(i + 1) === 0x44 && // 'D'
+                view.getUint8(i + 2) === 0x33) { // '3'
+                
+                // Get synchsafe size from the original tag
+                const s0 = view.getUint8(i + 6);
+                const s1 = view.getUint8(i + 7);
+                const s2 = view.getUint8(i + 8);
+                const s3 = view.getUint8(i + 9);
+                const tagSize = (s0 << 21) | (s1 << 14) | (s2 << 7) | s3;
+                const totalTagSize = tagSize + 10; // Tag size + 10 bytes header
+                
+                console.log(`=== STRIPPER SUCCESS ===`);
+                console.log(`Found existing ID3v2 tag at offset ${i}. Stripping ${totalTagSize} bytes.`);
+                
+                // Reconstruct clean ArrayBuffer (Keep leading junk + skip old tag)
+                const part1 = new Uint8Array(arrayBuffer.slice(0, i));
+                const part2 = new Uint8Array(arrayBuffer.slice(i + totalTagSize));
+                
+                const cleanBuffer = new ArrayBuffer(part1.length + part2.length);
+                const cleanArr = new Uint8Array(cleanBuffer);
+                cleanArr.set(part1, 0);
+                cleanArr.set(part2, part1.length);
+                
+                return cleanBuffer;
+            }
         }
+        console.log("No pre-existing ID3v2 tag found. Using original buffer.");
         return arrayBuffer;
     },
 
@@ -35,7 +51,6 @@ const Metadata = {
             
             console.log("File loaded. Initiating safe jsmediatags read...");
             
-            // Runs inside reader.onload to prevent parallel file-access blocks (CORS)
             window.jsmediatags.read(file, {
                 onSuccess: function(tag) {
                     const tags = tag.tags;
@@ -72,7 +87,7 @@ const Metadata = {
                 throw new Error("ID3 Writer constructor is missing.");
             }
 
-            // Stripping original tags before applying new ones to prevent double-tag errors
+            // Stripping original tags securely before applying new ones
             const cleanAudioBuffer = Metadata.stripId3v2(Metadata.originalAudioBuffer);
             const writer = new WriterClass(cleanAudioBuffer);
             

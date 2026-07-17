@@ -104,6 +104,14 @@
         return e ? [i, o, n, r] : [t >> 24 & 255, t >> 16 & 255, t >> 8 & 255, 255 & t];
     }
 
+    function f(t) {
+        return (127 & t[0]) << 21 | (127 & t[1]) << 14 | (127 & t[2]) << 7 | 127 & t[3];
+    }
+
+    function c(t) {
+        return t[0] << 24 | t[1] << 16 | t[2] << 8 | t[3];
+    }
+
     class d {
         constructor(t) {
             this.name = t;
@@ -115,6 +123,32 @@
     }
 
     class l extends d {
+        constructor(t) {
+            super(t);
+        }
+        size(t) {
+            var e = t.length;
+            return "US-ASCII" === this.encoding ? e + 3 : 5 + 2 * e;
+        }
+        write(t, e) {
+            var r = t.length;
+            if ("US-ASCII" === this.encoding) {
+                e.setUint8(0);
+                var n = i(t);
+                e.setUint8Array(n);
+            } else {
+                e.setUint8(1);
+                e.setUint8(255);
+                e.setUint8(254);
+                var o = u(t);
+                e.setUint8Array(o);
+            }
+            e.setUint8(0);
+            e.setUint8(0);
+        }
+    }
+
+    class v extends d {
         constructor(t) {
             super(t);
         }
@@ -227,7 +261,7 @@
         constructor(t) {
             if (!t || 0 === t.byteLength) throw new Error("ArrayBuffer is required");
             this.buffer = t;
-            this.padding = 0; // Padding completely disabled to prevent offset errors
+            this.padding = 0; // Padding always 0
             this.frames = [];
             this.url = "";
         }
@@ -273,7 +307,7 @@
                         (e = new y(t.id)).encoding = "UTF-16LE";
                         break;
                     case "APIC":
-                        (e = new p(t.id)).encoding = "US-ASCII"; // ASCII for mobile support
+                        (e = new p(t.id)).encoding = "US-ASCII";
                         break;
                     default:
                         throw new Error("Frame not implemented");
