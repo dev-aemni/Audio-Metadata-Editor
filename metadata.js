@@ -47,10 +47,12 @@ const Metadata = {
         reader.onload = () => { 
             Metadata.originalAudioBuffer = reader.result; 
             
-            console.log("File fully loaded into RAM. Initiating direct memory parse...");
+            console.log("File loaded. Wrapping ArrayBuffer into a safe memory Blob...");
             
-            // FIX: Passing the RAM ArrayBuffer directly instead of the File object (Prevents Chrome Slicing Bug)
-            window.jsmediatags.read(Metadata.originalAudioBuffer, {
+            // FIX: Wraps ArrayBuffer into a safe memory Blob (Prevents both "No suitable reader" AND "Offset not loaded" errors)
+            const safeBlob = new Blob([Metadata.originalAudioBuffer], { type: 'audio/mpeg' });
+            
+            window.jsmediatags.read(safeBlob, {
                 onSuccess: function(tag) {
                     const tags = tag.tags;
                     console.log("=== JSMEDIATAGS READ SUCCESS ===");
