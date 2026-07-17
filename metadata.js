@@ -5,7 +5,7 @@ const Metadata = {
     fileName: "",
     originalTags: {},
 
-    // FIX: Deep Scan & Strip any existing ID3v2 tag at any offset (0 to 2000)
+    // Deep Scan & Strip any existing ID3v2 tag at any offset (0 to 2000)
     stripId3v2: (arrayBuffer) => {
         const view = new DataView(arrayBuffer);
         const limit = Math.min(arrayBuffer.byteLength - 10, 2000); // Scans first 2000 bytes
@@ -15,18 +15,16 @@ const Metadata = {
                 view.getUint8(i + 1) === 0x44 && // 'D'
                 view.getUint8(i + 2) === 0x33) { // '3'
                 
-                // Get synchsafe size from the original tag
                 const s0 = view.getUint8(i + 6);
                 const s1 = view.getUint8(i + 7);
                 const s2 = view.getUint8(i + 8);
                 const s3 = view.getUint8(i + 9);
                 const tagSize = (s0 << 21) | (s1 << 14) | (s2 << 7) | s3;
-                const totalTagSize = tagSize + 10; // Tag size + 10 bytes header
+                const totalTagSize = tagSize + 10; 
                 
                 console.log(`=== STRIPPER SUCCESS ===`);
                 console.log(`Found existing ID3v2 tag at offset ${i}. Stripping ${totalTagSize} bytes.`);
                 
-                // Reconstruct clean ArrayBuffer (Keep leading junk + skip old tag)
                 const part1 = new Uint8Array(arrayBuffer.slice(0, i));
                 const part2 = new Uint8Array(arrayBuffer.slice(i + totalTagSize));
                 
@@ -49,9 +47,10 @@ const Metadata = {
         reader.onload = () => { 
             Metadata.originalAudioBuffer = reader.result; 
             
-            console.log("File loaded. Initiating safe jsmediatags read...");
+            console.log("File fully loaded into RAM. Initiating direct memory parse...");
             
-            window.jsmediatags.read(file, {
+            // FIX: Passing the RAM ArrayBuffer directly instead of the File object (Prevents Chrome Slicing Bug)
+            window.jsmediatags.read(Metadata.originalAudioBuffer, {
                 onSuccess: function(tag) {
                     const tags = tag.tags;
                     console.log("=== JSMEDIATAGS READ SUCCESS ===");
@@ -87,7 +86,6 @@ const Metadata = {
                 throw new Error("ID3 Writer constructor is missing.");
             }
 
-            // Stripping original tags securely before applying new ones
             const cleanAudioBuffer = Metadata.stripId3v2(Metadata.originalAudioBuffer);
             const writer = new WriterClass(cleanAudioBuffer);
             
