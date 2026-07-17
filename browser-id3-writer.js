@@ -80,6 +80,10 @@
         return r;
     }
 
+<<<<<<< HEAD
+=======
+    // UTF-16LE conversion helper
+>>>>>>> d9348e4759808e38232fa7e81db214b7fcf98035
     function u(t) {
         var e = t.length, r = new Uint8Array(2 * e);
         for (var n = 0; n < e; n++) {
@@ -90,7 +94,10 @@
         return r;
     }
 
+<<<<<<< HEAD
     // UTF string array builder
+=======
+>>>>>>> d9348e4759808e38232fa7e81db214b7fcf98035
     function a(t) {
         var e = [];
         for (var r = 0; r < t.length; r++) {
@@ -179,11 +186,16 @@
         constructor(t) {
             super(t);
         }
+<<<<<<< HEAD
         // FIXED: Sahi image size calculator (was over-allocating 14 bytes, causing binary corruption)
+=======
+        // FIX: Mobile-compatible accurate size calculator (US-ASCII vs UTF-16)
+>>>>>>> d9348e4759808e38232fa7e81db214b7fcf98035
         size(t) {
             var e = t.mimeType.length, 
                 r = t.description.length, 
                 n = t.data.byteLength;
+<<<<<<< HEAD
             return 7 + e + 2 * r + n;
         }
         write(t, e) {
@@ -200,6 +212,41 @@
             }
             e.setUint8(0);
             e.setUint8(0);
+=======
+            if ("US-ASCII" === this.encoding) {
+                return 4 + e + r + n;
+            } else {
+                return 7 + e + 2 * r + n;
+            }
+        }
+        // FIX: Mobile-compatible dual-encoding writer (Writes clean ASCII for Mobile compatibility)
+        write(t, e) {
+            var r = i(t.mimeType);
+            if ("US-ASCII" === this.encoding) {
+                e.setUint8(0); // encoding 0 (US-ASCII)
+                e.setUint8Array(r);
+                e.setUint8(0);
+                e.setUint8(t.type);
+                if (t.description.length) {
+                    var n = i(t.description);
+                    e.setUint8Array(n);
+                }
+                e.setUint8(0);
+            } else {
+                e.setUint8(1); // encoding 1 (UTF-16LE)
+                e.setUint8Array(r);
+                e.setUint8(0);
+                e.setUint8(t.type);
+                e.setUint8(255);
+                e.setUint8(254);
+                if (t.description.length) {
+                    var n = u(t.description);
+                    e.setUint8Array(n);
+                }
+                e.setUint8(0);
+                e.setUint8(0);
+            }
+>>>>>>> d9348e4759808e38232fa7e81db214b7fcf98035
             var o = new Uint8Array(t.data);
             e.setUint8Array(o);
         }
@@ -247,7 +294,11 @@
         constructor(t) {
             if (!t || 0 === t.byteLength) throw new Error("ArrayBuffer is required");
             this.buffer = t;
+<<<<<<< HEAD
             this.padding = 0;
+=======
+            this.padding = 4096;
+>>>>>>> d9348e4759808e38232fa7e81db214b7fcf98035
             this.frames = [];
             this.url = "";
         }
@@ -293,7 +344,12 @@
                         (e = new y(t.id)).encoding = "UTF-16LE";
                         break;
                     case "APIC":
+<<<<<<< HEAD
                         (e = new p(t.id)).encoding = "UTF-16LE";
+=======
+                        // FIX: Forcing US-ASCII for APIC frame for maximum mobile/native player compatibility
+                        (e = new p(t.id)).encoding = "US-ASCII";
+>>>>>>> d9348e4759808e38232fa7e81db214b7fcf98035
                         break;
                     default:
                         throw new Error("Frame not implemented");
