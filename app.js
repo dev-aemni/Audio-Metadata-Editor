@@ -1,4 +1,3 @@
-
 // app.js
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -51,8 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
             fields.year.value = tags.year || '';
             fields.track.value = tags.track || '';
 
+            // Using Blob URLs for instant & reliable rendering of any cover size
             if (tags.picture && tags.picture.data) {
-                console.log("Original Cover Found! Reading bytes...");
+                console.log("Rendering original cover image...");
                 const picData = new Uint8Array(tags.picture.data);
                 const format = tags.picture.format || 'image/jpeg';
                 ImageEditor.currentCoverMimeType = format;
@@ -60,12 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const blob = new Blob([picData], { type: format });
                 coverPreview.src = URL.createObjectURL(blob);
 
+                // Deep copy bytes to prevent shared-buffer memory corruptions
                 const cleanBuffer = new ArrayBuffer(picData.length);
                 new Uint8Array(cleanBuffer).set(picData);
                 ImageEditor.currentCoverArrayBuffer = cleanBuffer;
-                console.log("Original Cover rendered, buffer size:", cleanBuffer.byteLength);
             } else {
-                console.log("No Cover Found in this MP3 file.");
                 coverPreview.src = "https://dummyimage.com/300x300/282828/1db954.png&text=No+Cover";
                 ImageEditor.currentCoverArrayBuffer = null;
                 ImageEditor.currentCoverMimeType = 'image/jpeg';

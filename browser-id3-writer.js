@@ -80,7 +80,6 @@
         return r;
     }
 
-    // UTF-16LE conversion helper
     function u(t) {
         var e = t.length, r = new Uint8Array(2 * e);
         for (var n = 0; n < e; n++) {
@@ -103,14 +102,6 @@
     function h(t, e) {
         var r = 127 & t, n = 127 & t >> 7, o = 127 & t >> 14, i = 127 & t >> 21;
         return e ? [i, o, n, r] : [t >> 24 & 255, t >> 16 & 255, t >> 8 & 255, 255 & t];
-    }
-
-    function f(t) {
-        return (127 & t[0]) << 21 | (127 & t[1]) << 14 | (127 & t[2]) << 7 | 127 & t[3];
-    }
-
-    function c(t) {
-        return t[0] << 24 | t[1] << 16 | t[2] << 8 | t[3];
     }
 
     class d {
@@ -149,37 +140,10 @@
         }
     }
 
-    class v extends d {
-        constructor(t) {
-            super(t);
-        }
-        size(t) {
-            var e = t.length;
-            return "US-ASCII" === this.encoding ? e + 3 : 5 + 2 * e;
-        }
-        write(t, e) {
-            var r = t.length;
-            if ("US-ASCII" === this.encoding) {
-                e.setUint8(0);
-                var n = i(t);
-                e.setUint8Array(n);
-            } else {
-                e.setUint8(1);
-                e.setUint8(255);
-                e.setUint8(254);
-                var o = u(t);
-                e.setUint8Array(o);
-            }
-            e.setUint8(0);
-            e.setUint8(0);
-        }
-    }
-
     class p extends d {
         constructor(t) {
             super(t);
         }
-        // FIX: Mobile-compatible accurate size calculator (US-ASCII vs UTF-16)
         size(t) {
             var e = t.mimeType.length, 
                 r = t.description.length, 
@@ -190,11 +154,10 @@
                 return 7 + e + 2 * r + n;
             }
         }
-        // FIX: Mobile-compatible dual-encoding writer (Writes clean ASCII for Mobile compatibility)
         write(t, e) {
             var r = i(t.mimeType);
             if ("US-ASCII" === this.encoding) {
-                e.setUint8(0); // encoding 0 (US-ASCII)
+                e.setUint8(0);
                 e.setUint8Array(r);
                 e.setUint8(0);
                 e.setUint8(t.type);
@@ -204,7 +167,7 @@
                 }
                 e.setUint8(0);
             } else {
-                e.setUint8(1); // encoding 1 (UTF-16LE)
+                e.setUint8(1);
                 e.setUint8Array(r);
                 e.setUint8(0);
                 e.setUint8(t.type);
@@ -264,7 +227,7 @@
         constructor(t) {
             if (!t || 0 === t.byteLength) throw new Error("ArrayBuffer is required");
             this.buffer = t;
-            this.padding = 0;
+            this.padding = 0; // Padding completely disabled to prevent offset errors
             this.frames = [];
             this.url = "";
         }
@@ -310,8 +273,7 @@
                         (e = new y(t.id)).encoding = "UTF-16LE";
                         break;
                     case "APIC":
-                        // FIX: Forcing US-ASCII for APIC frame for maximum mobile/native player compatibility
-                        (e = new p(t.id)).encoding = "US-ASCII";
+                        (e = new p(t.id)).encoding = "US-ASCII"; // ASCII for mobile support
                         break;
                     default:
                         throw new Error("Frame not implemented");

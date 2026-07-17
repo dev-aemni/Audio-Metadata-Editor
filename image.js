@@ -2,11 +2,10 @@
 
 const ImageEditor = {
     currentCoverArrayBuffer: null,
-    currentCoverMimeType: 'image/jpeg', // Default format
+    currentCoverMimeType: 'image/jpeg',
 
     handleImageUpload: async (file, previewImgElement) => {
         try {
-            // Store the new image's mimeType (e.g. image/png or image/jpeg)
             ImageEditor.currentCoverMimeType = file.type || 'image/jpeg';
 
             const options = {
@@ -15,7 +14,6 @@ const ImageEditor = {
                 useWebWorker: true
             };
             const compressedFile = await imageCompression(file, options);
-            
             ImageEditor.currentCoverArrayBuffer = await compressedFile.arrayBuffer();
             
             const reader = new FileReader();

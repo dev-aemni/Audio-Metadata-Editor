@@ -1,18 +1,14 @@
+// utils.js
+
 const Utils = {
-    // AI / Auto Cleanup Text (Capitalization & removing basic junk)
     cleanText: (text) => {
         if (!text) return "";
-        // Convert "rick astly" -> "Rick Astley"
-        let cleaned = text.trim().toLowerCase().split(' ').map(word => {
-            // Check for common abbreviations like 'u' -> 'you' (Optional extra logic)
+        return text.trim().toLowerCase().split(' ').map(word => {
             if (word === 'u') return 'You';
             return word.charAt(0).toUpperCase() + word.slice(1);
         }).join(' ');
-        
-        return cleaned;
     },
 
-    // Search MusicBrainz based on current Title and Artist
     searchMusicBrainz: async (title, artist) => {
         if (!title) return null;
         const query = encodeURIComponent(`recording:"${title}" AND artist:"${artist}"`);
@@ -35,16 +31,5 @@ const Utils = {
             console.error("MusicBrainz Error:", error);
         }
         return null;
-    },
-
-    // Convert ArrayBuffer to Base64 (For Image Preview)
-    arrayBufferToBase64: (buffer) => {
-        let binary = '';
-        let bytes = new Uint8Array(buffer);
-        let len = bytes.byteLength;
-        for (let i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        return window.btoa(binary);
     }
 };

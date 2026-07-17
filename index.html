@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Metadata Editor</title>
+    <title>Audio Metadata Editor v1.1</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -15,7 +15,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #121212; }
         ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
@@ -26,7 +25,7 @@
 
     <!-- Header -->
     <header class="bg-panel p-4 shadow-md flex justify-between items-center border-b border-light">
-        <h1 class="text-2xl font-bold text-spotify"><i class="fas fa-music mr-2"></i> MetadataEditor</h1>
+        <h1 class="text-2xl font-bold text-spotify"><i class="fas fa-music mr-2"></i> MetadataEditor v1.1</h1>
         <button id="searchBtn" class="bg-light hover:bg-gray-700 text-white px-4 py-2 rounded hidden transition">
             <i class="fas fa-search mr-2"></i>Search MusicBrainz
         </button>
@@ -43,16 +42,13 @@
             <input type="file" id="audioInput" accept="audio/mpeg" class="hidden">
         </div>
 
-        <!-- Editor Area (Hidden initially) -->
+        <!-- Editor Area -->
         <div id="editorArea" class="w-full max-w-5xl hidden grid grid-cols-1 md:grid-cols-3 gap-8 mt-6">
             
             <!-- Left Column: Cover Art & File Info -->
             <div class="col-span-1 flex flex-col items-center bg-panel p-6 rounded-lg">
-                <!-- Cover Image Box -->
                 <div class="relative group w-48 h-48 mb-4 bg-light rounded shadow-lg overflow-hidden flex items-center justify-center">
-                    <!-- Changed placeholder image to a more reliable one -->
                     <img id="coverPreview" src="https://dummyimage.com/300x300/282828/1db954.png&text=No+Cover" class="w-full h-full object-cover">
-                    
                     <div class="absolute inset-0 bg-black bg-opacity-70 hidden group-hover:flex flex-col justify-center items-center transition">
                         <label class="cursor-pointer text-white hover:text-spotify mb-2">
                             <i class="fas fa-camera mr-1"></i> Change
@@ -62,7 +58,6 @@
                     </div>
                 </div>
                 
-                <!-- Read-only File Info -->
                 <div class="w-full bg-light p-4 rounded text-sm text-gray-300 mb-4">
                     <p class="flex justify-between border-b border-gray-600 py-1"><span>Format:</span> <span id="infoCodec">-</span></p>
                     <p class="flex justify-between border-b border-gray-600 py-1"><span>Size:</span> <span id="infoSize">-</span></p>
@@ -74,7 +69,7 @@
                 </div>
             </div>
 
-            <!-- Right Column: Form Fields (Fixed UI) -->
+            <!-- Right Column: Form Fields -->
             <div class="col-span-2 bg-panel p-6 rounded-lg grid grid-cols-2 gap-4">
                 <div class="col-span-2 md:col-span-1">
                     <label class="text-xs text-gray-400">Title</label>
@@ -127,7 +122,6 @@
     <div id="compareModal" class="fixed inset-0 bg-black bg-opacity-80 hidden flex justify-center items-center z-50">
         <div class="bg-panel w-full max-w-3xl rounded-lg shadow-2xl p-6">
             <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Review Changes</h2>
-            
             <div class="grid grid-cols-2 gap-4 text-sm mb-6 max-h-96 overflow-y-auto">
                 <div>
                     <h3 class="text-red-400 font-bold mb-2">Before (Original)</h3>
@@ -138,22 +132,19 @@
                     <div id="afterTags" class="space-y-2 text-white"></div>
                 </div>
             </div>
-
             <div class="flex justify-end gap-4 mt-4">
                 <button id="cancelSaveBtn" class="bg-light hover:bg-gray-700 px-6 py-2 rounded transition">Cancel</button>
                 <button id="confirmSaveBtn" class="bg-spotify hover:bg-green-600 text-black font-bold px-6 py-2 rounded transition"><i class="fas fa-download mr-2"></i> Download Updated File</button>
             </div>
         </div>
     </div>
-<!-- Offline Libraries (No CDN dependency) -->
+
+    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
-    
-    <!-- YAHAN NAYA FILE LINK KIYA HAI -->
-    <script src="browser-id3-writer.js"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
-        <!-- JS Files -->
+
+    <!-- Project JS Files -->
+    <script src="browser-id3-writer.js"></script>
     <script src="utils.js"></script>
     <script src="image.js"></script>
     <script src="metadata.js"></script>
